@@ -68,16 +68,14 @@ def check_urls(file_path):
 
     for paragraph in doc.paragraphs:
         # Check if any run within the paragraph contains non-ASCII characters
-        for run in paragraph.runs:
-            text = run.text.hyperlinks
-            if text :
-                print("there are liks")
-            
-
+        for links in paragraph.hyperlinks:
+            link = links._hyperlink.text
+            if link:
+                print(f"There are some links {link}")
 
 if __name__ == "__main__":
     # Replace 'your_word_file.docx' with the actual path to your Word file
-    word_file_path = "../test/test1.docx"
+    word_file_path = "../test/test.docx"
     #read_word_file(word_file_path)
     check_complex_style2(word_file_path)
-    #check_urls(word_file_path)
+    check_urls(word_file_path)
