@@ -45,12 +45,13 @@ def check_font(doc):
 
 # Check font color
 def is_red_color(color):
-    # Check if the color is red
-    # Check if the color has variations in RGB components
-    #return len(set(color) - {0, 255}) > 1
-
     # return red color
     return color == RGBColor(255, 0, 0)
+
+
+def has_gradient_font_color(color):
+    # Check if the color has variations in RGB components
+    return len(set(color) - {0, 255}) > 1
 
 
 def is_red_variant(color):
@@ -69,7 +70,7 @@ def check_font_color(doc):
             font_color = run.font.color.rgb if run.font.color else None
 
             if font_color is not None and is_red_variant(font_color):
-                print(f"Red font color found in paragraph '{paragraph.text}'")
+                print(f"Red variant font color found in paragraph '{paragraph.text}'")
 
 def main():
     # Specify the path to your Word document
