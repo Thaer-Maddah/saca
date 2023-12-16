@@ -36,23 +36,29 @@ def has_table_of_contents(doc):
         return True
     return False
 
-
+# Font section
 def check_font(doc):
     body_element = doc._body._body
     #print(body_element.xml)
     return "w:val=\"40\"" in body_element.xml 
 
+def is_font_justified(paragraph):
+    # Check if the paragraph alignment is justified
+    return paragraph.alignment == 3  # 3 corresponds to justified alignment
+
+def check_justified_font(doc):
+    for paragraph in doc.paragraphs:
+        if is_font_justified(paragraph):
+            print(f"Paragraph '{paragraph.text}' \nhas justified font.")
 
 # Check font color
 def is_red_color(color):
     # return red color
     return color == RGBColor(255, 0, 0)
 
-
 def has_gradient_font_color(color):
     # Check if the color has variations in RGB components
     return len(set(color) - {0, 255}) > 1
-
 
 def is_red_variant(color):
     # Define a range of RGB values corresponding to red variants
@@ -63,7 +69,6 @@ def is_red_variant(color):
     # Check if the color is a red variant
     return color[0] in red_range and color[1] in green_range and color[2] in blue_range
 
-
 def check_font_color(doc):
     for paragraph in doc.paragraphs:
         for run in paragraph.runs:
@@ -71,6 +76,7 @@ def check_font_color(doc):
 
             if font_color is not None and is_red_variant(font_color):
                 print(f"Red variant font color found in paragraph '{paragraph.text}'")
+
 
 def main():
     # Specify the path to your Word document
@@ -97,5 +103,6 @@ def main():
         print("Font size it's not correct")
 
     check_font_color(doc)
+    check_justified_font(doc)
 if __name__ == "__main__":
     main()
