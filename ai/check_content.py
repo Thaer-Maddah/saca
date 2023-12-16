@@ -1,5 +1,5 @@
-#!/usr/bin/python
 # Writtin By Thaer Maddah
+
 from docx import Document
 
 # Check if there is a cover page
