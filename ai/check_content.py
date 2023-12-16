@@ -1,6 +1,7 @@
 # Writtin By Thaer Maddah
 
 from docx import Document
+from docx.shared import RGBColor
 
 # Check if there is a cover page
 def has_cover_page(doc):
@@ -35,6 +36,41 @@ def has_table_of_contents(doc):
         return True
     return False
 
+
+def check_font(doc):
+    body_element = doc._body._body
+    #print(body_element.xml)
+    return "w:val=\"40\"" in body_element.xml 
+
+
+# Check font color
+def is_red_color(color):
+    # Check if the color is red
+    # Check if the color has variations in RGB components
+    #return len(set(color) - {0, 255}) > 1
+
+    # return red color
+    return color == RGBColor(255, 0, 0)
+
+
+def is_red_variant(color):
+    # Define a range of RGB values corresponding to red variants
+    red_range = range(180, 256)     # Adjust the range as needed
+    green_range = range(0, 75)      # Adjust the range as needed
+    blue_range = range(0, 75)       # Adjust the range as needed
+
+    # Check if the color is a red variant
+    return color[0] in red_range and color[1] in green_range and color[2] in blue_range
+
+
+def check_font_color(doc):
+    for paragraph in doc.paragraphs:
+        for run in paragraph.runs:
+            font_color = run.font.color.rgb if run.font.color else None
+
+            if font_color is not None and is_red_variant(font_color):
+                print(f"Red font color found in paragraph '{paragraph.text}'")
+
 def main():
     # Specify the path to your Word document
     doc_path = '../test/test.docx'
@@ -54,7 +90,11 @@ def main():
     else:
         print("No table of contents found in the document.")
 
-    #has_table_of_contents3(doc)
+    if check_font(doc):
+        print("Font size: 20")
+    else:
+        print("Font size it's not correct")
 
+    check_font_color(doc)
 if __name__ == "__main__":
     main()
