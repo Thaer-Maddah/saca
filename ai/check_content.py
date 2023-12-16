@@ -1,3 +1,4 @@
+#!/usr/bin/python
 # Writtin By Thaer Maddah
 from docx import Document
 
