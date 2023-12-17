@@ -2,6 +2,7 @@
 
 from docx import Document
 from docx.shared import RGBColor
+import re
 
 # Check if there is a cover page
 def has_cover_page(doc):
@@ -34,6 +35,18 @@ def has_table_of_contents(doc):
     # Search for table of contents (TOC)
     if "TOC" in body_element.xml:
         return True
+    return False
+
+# find table of contents using regular expression revised by claude 2.0
+def has_table_of_contents1(doc):
+    """Check if a document contains a table of contents"""
+    body_text = doc._body._body.text    # we can replace _body.text with _body.xml
+    
+    # Use a regular expression to search for 'Table of Contents' or 'Contents'
+    toc_regex = re.compile(r'(Table of Contents|Contents)', re.IGNORECASE)
+    if toc_regex.search(body_text):
+        return True
+    
     return False
 
 # Font section
