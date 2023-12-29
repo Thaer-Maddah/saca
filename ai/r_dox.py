@@ -15,5 +15,5 @@ def convert_docx_to_txt(docx_filename, txt_filename):
         print(f'Error: {e}')
 # Example usage
 docx_file = "../test/test1.docx"
-txt_file = "../test/test.txt"
+txt_file = "../test/test1.txt"
 convert_docx_to_txt(docx_file, txt_file)

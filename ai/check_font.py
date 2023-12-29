@@ -75,7 +75,7 @@ def check_urls(file_path):
 
 if __name__ == "__main__":
     # Replace 'your_word_file.docx' with the actual path to your Word file
-    word_file_path = "../test/test.docx"
+    word_file_path = "../test/test1.docx"
     #read_word_file(word_file_path)
     check_complex_style2(word_file_path)
     check_urls(word_file_path)
