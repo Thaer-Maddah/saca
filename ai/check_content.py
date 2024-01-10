@@ -1,8 +1,10 @@
+#!/usr/bin/python3
 # Writtin By Thaer Maddah
 
 from docx import Document
 from docx.shared import RGBColor
 import re
+
 
 # Check if there is a cover page
 def has_cover_page(doc):
@@ -92,8 +94,10 @@ def check_font_color(doc):
 
 
 def main():
+
+    data = []
     # Specify the path to your Word document
-    doc_path = '../test/test.docx'
+    doc_path = '../test/test1.docx'
 
     # Load the Word document
     doc = Document(doc_path)
@@ -101,21 +105,31 @@ def main():
     # Check if the document has a cover page
     if has_cover_page(doc):
         print("The document has a cover page.")
+        data.append(5)
     else:
         print("No cover page found in the document.")
+        data.append(0)
 
     # Check if the document has a table of contents
     if has_table_of_contents(doc):
         print("The document has a table of contents.")
+        data.append(5)
     else:
         print("No table of contents found in the document.")
+        data.append(0)
 
     if check_font(doc):
         print("Font size: 20")
     else:
         print("Font size it's not correct")
 
+    if has_string(doc):
+        print(f"The document has string {has_string(doc)}")
+    else:
+        print(f"The document has string {has_string(doc)}")
+
     check_font_color(doc)
     check_justified_font(doc)
+    print(data)
 if __name__ == "__main__":
     main()
