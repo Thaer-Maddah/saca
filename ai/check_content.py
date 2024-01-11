@@ -6,7 +6,7 @@ from docx.shared import RGBColor
 #import zipfile
 #import xml.etree.ElementTree as ET
 import re
-from docx.shared import Inches
+#from docx.shared import Inches
 from PIL import Image
 from io import BytesIO
 
