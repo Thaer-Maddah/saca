@@ -1,5 +1,17 @@
 #!/usr/bin/python3
 # Writtin By Thaer Maddah
+import sys
+import time
+import zipfile
+import xml.etree.ElementTree as ET
+import pandas as pd
+import re
+sys.path.insert(1, '../')
+import write_grades as wr
+import browse_files as bf
+#import textract
+import math
+
 
 from docx import Document
 from docx.shared import RGBColor
@@ -11,6 +23,7 @@ import re
 from PIL import Image
 from io import BytesIO
 
+data = []
 
 # Check if there is a cover page
 def has_cover_page(doc):
@@ -73,7 +86,7 @@ def has_table_of_contents1(doc):
 def check_font_size(doc):
     body_element = doc._body._body
     #print(body_element.xml)
-    return "w:val=\"40\"" in body_element.xml 
+    return "w:val=\"40\"" in body_element.xml and "w:val=\"28\"" in body_element.xml
 
 def is_bold(doc):
     body_element = doc._body._body
@@ -93,7 +106,7 @@ def check_bold_in_word_file(doc):
     for paragraph in doc.paragraphs:
         for run in paragraph.runs:
             if is_font_bold(run):
-                print(f"Font in paragraph '{paragraph.text}' is bold.")
+                #print(f"Font in paragraph '{paragraph.text}' is bold.")
                 return True
     return False
 ############################################################################
@@ -103,9 +116,9 @@ def check_complex_style(doc):
     # Iterate over all paragraphs in the document
     for paragraph in doc.paragraphs:
         # Check if the paragraph has a specific font complex script style
-        print(paragraph.style.font.name)
+        #print(paragraph.style.font.name)
         if paragraph.style.font.name == "Times New Roman" or paragraph.style.font.name == "Arial":
-            print(f"The following paragraph has a complex script font style: {paragraph.text}")
+            #print(f"The following paragraph has a complex script font style: {paragraph.text}")
             return True
     return False
 
@@ -114,7 +127,9 @@ def check_line_spacing(doc):
         # Check line spacing for each paragraph
         line_spacing = paragraph.paragraph_format.line_spacing
         if line_spacing is not None and line_spacing == 1.5:
-            print(f"Paragraph: '{paragraph.text}' - Line Spacing: {line_spacing}")
+            #print(f"Paragraph: '{paragraph.text}' - Line Spacing: {line_spacing}")
+            return True
+    return False
 
 
 def is_font_justified(paragraph):
@@ -154,6 +169,8 @@ def check_font_color(doc):
 
             if font_color is not None and is_red_variant(font_color):
                 print(f"Red variant font color found in paragraph '{paragraph.text}'")
+                return True
+    return False
 
 
 def has_images(doc):
@@ -284,7 +301,7 @@ def page_has_color(doc):
 
 
 
-def main():
+def reviseDocuments(doc):
 
     data = []
     # Specify the path to your Word document
@@ -326,8 +343,8 @@ def main():
 
 
     if check_font_size(doc):
-        print("Font size: 20")
-        data.append(1)
+        print("Font size: 20 and 14")
+        data.append(2)
     else:
         print("Font size it's not correct")
         data.append(0)
@@ -339,7 +356,12 @@ def main():
         print("Found no bold")
         data.append(0)
 
-    check_font_color(doc)
+    if check_font_color(doc):
+        print("Font color is red")
+        data.append(2)
+    else:
+        print("Font color is not red")
+        data.append(1) # add 1 for balck font
 
     if check_line_spacing(doc):
         print("Line spacing is 1.5")
@@ -410,5 +432,51 @@ def main():
         data.append(0)
 
     print(data)
+    degree = sum(data[1:len(data)])
+    # put data between bracktes to retern data in a single list element [item1,item2,..]
+    wr.writeDocGrades([data]) 
+    print('Final degree is:', degree)
+    del data[:]
+
+
+def main():
+    counter = 0 
+    folder = '../Assign/c18'
+    #folder = 'test/'
+    ext = '.docx'
+    trim_txt = '../code/Assign/'
+    files = []
+    files, dirs = bf.browse(ext, folder)
+    sep = '='
+    start = time.time()
+    
+    for file, dir in zip(files, dirs):
+        path = bf.getFile(file, dir)
+        print(path)
+        #print('The file path:', path)
+        doc = zipfile.ZipFile(path).read('word/document.xml')
+        root = ET.fromstring(doc)
+        #xmlfile = ET.parse(path)
+        #root = xmlfile.getroot()
+        
+        f = open(dir +'/' + 'doc.xml', 'wb')
+        f.write(doc)
+        # Microsoft's XML makes heavy use of XML namespaces; thus, we'll need to reference that in our code
+        ns = {'w': 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'}
+        body = root.find('w:body', ns)  # find the XML "body" tag
+        p_sections = body.findall('w:p', ns)  # under the body tag, find all the paragraph sections
+    
+        # add student file
+        data.append(path.strip(trim_txt))
+        reviseDocuments(doc)
+        counter += 1
+        print(counter, 'Assignments has been revised!')
+        print(sep * 120)
+        #time.sleep(0.5)
+    end = time.time()
+    print(f"Total time: {round(end - start)} seconds")
+
+
+
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
