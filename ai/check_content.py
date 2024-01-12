@@ -29,11 +29,23 @@ def has_cover_page(doc):
 
 # Search for word in text
 def has_string(doc):
-    for paragraph in doc.paragraphs:
-        # Check if the paragraph contains a table of contents field
-        if "ثائر" in paragraph.text:
-            return True
-    return False
+    # Code optimized by mixtral
+    # Ever condition must be in new paragraph 
+    return sum(1 for p in doc.paragraphs if "Thaer" in p.text or 
+        "Artificial Intelligence" in p.text or
+    "ثائر" in p.text or 
+        "الذكاء الاصطناعي" in p.text)
+
+    #for paragraph in doc.paragraphs:
+    #    # Check if the paragraph contains a table of contents field
+    #    if "ثائر" or "Thaer" in paragraph.text:
+    #        info += 1
+    #    if "Artificial" in paragraph.text:
+    #        info += 1
+    #    return info
+
+
+    #return False
 
 
 # This is the true function that's detect table of contents
@@ -58,10 +70,52 @@ def has_table_of_contents1(doc):
     return False
 
 # Font section
-def check_font(doc):
+def check_font_size(doc):
     body_element = doc._body._body
     #print(body_element.xml)
     return "w:val=\"40\"" in body_element.xml 
+
+def is_bold(doc):
+    body_element = doc._body._body
+    return "" in body_element.xml
+
+########################## bold section #########################
+def is_font_bold(run):
+    """
+    Check if the font in a run is bold.
+    """
+    return run.bold
+
+def check_bold_in_word_file(doc):
+    """
+    Check if the font is bold in a Word file.
+    """
+    for paragraph in doc.paragraphs:
+        for run in paragraph.runs:
+            if is_font_bold(run):
+                print(f"Font in paragraph '{paragraph.text}' is bold.")
+                return True
+    return False
+############################################################################
+
+def check_complex_style(doc):
+
+    # Iterate over all paragraphs in the document
+    for paragraph in doc.paragraphs:
+        # Check if the paragraph has a specific font complex script style
+        print(paragraph.style.font.name)
+        if paragraph.style.font.name == "Times New Roman" or paragraph.style.font.name == "Arial":
+            print(f"The following paragraph has a complex script font style: {paragraph.text}")
+            return True
+    return False
+
+def check_line_spacing(doc):
+    for paragraph in doc.paragraphs:
+        # Check line spacing for each paragraph
+        line_spacing = paragraph.paragraph_format.line_spacing
+        if line_spacing is not None and line_spacing == 1.5:
+            print(f"Paragraph: '{paragraph.text}' - Line Spacing: {line_spacing}")
+
 
 def is_font_justified(paragraph):
     # Check if the paragraph alignment is justified
@@ -158,11 +212,11 @@ def print_hyperlinks(doc):
 
 
 
-from docx.opc.constants import RELATIONSHIP_TYPE as RT
-def links(rels):
-    for rel in rels.items():
-        if rels[rel].reltype == RT.HYPERLINK:
-            yield rels[rel]._target
+#from docx.opc.constants import RELATIONSHIP_TYPE as RT
+#def links(rels):
+#    for rel in rels.items():
+#        if rels[rel].reltype == RT.HYPERLINK:
+#            yield rels[rel]._target
 
 
 def hyperlinks(doc):
@@ -234,7 +288,7 @@ def main():
 
     data = []
     # Specify the path to your Word document
-    doc_path = '../test/test1.docx'
+    doc_path = '../test/test.docx'
 
     # Load the Word document
     doc = Document(doc_path)
@@ -248,6 +302,13 @@ def main():
         print("No cover page found in the document.")
         data.append(0)
 
+    if has_string(doc):
+        print(f"The document has string {has_string(doc)}")
+        data.append(has_string(doc))
+    else:
+        print(f"The document has string {has_string(doc)}")
+        data.append(0)
+
     # Check if the document has a table of contents
     if has_table_of_contents(doc):
         print("The document has a table of contents.")
@@ -256,17 +317,37 @@ def main():
         print("No table of contents found in the document.")
         data.append(0)
 
-    if check_font(doc):
+    if check_complex_style(doc):
+        print("Font name Arial or New Times Roman exists")
+        data.append(1)
+    else:
+        print("Font did not match")
+        data.append(0)
+
+
+    if check_font_size(doc):
         print("Font size: 20")
+        data.append(1)
     else:
         print("Font size it's not correct")
+        data.append(0)
 
-    if has_string(doc):
-        print(f"The document has string {has_string(doc)}")
+    if check_bold_in_word_file(doc):
+        print("The text is bold.")
+        data.append(1)
     else:
-        print(f"The document has string {has_string(doc)}")
+        print("Found no bold")
+        data.append(0)
 
     check_font_color(doc)
+
+    if check_line_spacing(doc):
+        print("Line spacing is 1.5")
+        data.append(1)
+    else:
+        print("Line spacing is not correct")
+        data.append(0)
+
     if check_justified_font(doc):
         print('The paragraph is justified')
         data.append(4)
