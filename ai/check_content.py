@@ -3,6 +3,7 @@
 
 from docx import Document
 from docx.shared import RGBColor
+from docx.oxml.ns import qn
 #import zipfile
 #import xml.etree.ElementTree as ET
 import re
@@ -208,12 +209,32 @@ def has_watermark(doc):
     # Return False if no watermark is found
     return False
 
+def page_has_color(doc):
+    # Get the document element
+    doc_element = doc.element
+    
+    # Find the background element
+    background = doc_element.find("w:background", doc_element.nsmap)
+    
+    # Check if the background element exists
+    if background is not None:
+        # Get the page color
+        page_color = background.get(qn("w:color"))
+        # Print the page color in hexadecimal format
+        print(f"Page color: #{page_color}")
+        return True
+    else:
+        # Print the default page color (white)
+        print("Page color: #FFFFFF")
+        return False
+
+
 
 def main():
 
     data = []
     # Specify the path to your Word document
-    doc_path = '../test/test.docx'
+    doc_path = '../test/test1.docx'
 
     # Load the Word document
     doc = Document(doc_path)
@@ -302,6 +323,10 @@ def main():
         print("The Word document does not contain a watermark.") 
         data.append(0)
     
+    if page_has_color(doc):
+        data.append(2)
+    else:
+        data.append(0)
 
     print(data)
 if __name__ == "__main__":
