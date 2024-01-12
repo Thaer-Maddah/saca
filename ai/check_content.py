@@ -174,6 +174,35 @@ def hyperlinks(doc):
     return links
 
 
+def is_a4_word_document(doc):
+    section = doc.sections[0]  # Assuming the first section defines the paper size
+    page_width, page_height = section.page_width, section.page_height
+    print(page_width, page_height)
+    return page_width == 7560310  and page_height == 10692130    # A4 dimensions in twips
+
+def check_margins(doc):
+    section = doc.sections[0]  # Assuming the first section defines the margins
+    left_margin = section.left_margin
+    right_margin = section.right_margin
+    top_margin = section.top_margin
+    bottom_margin = section.bottom_margin
+    print(top_margin, bottom_margin)
+    return (
+        left_margin == right_margin == 720090  and  # 1440 twips per inch
+        top_margin == bottom_margin == 720090 
+    )
+
+
+
+
+def has_watermark(doc):
+
+    # Iterate through sections
+    for shape in doc.sections[0].footer.paragraphs[0].runs:
+        if shape.text.lower().startswith('watermark'):
+            return True
+    return False
+
 def main():
 
     data = []
@@ -182,7 +211,7 @@ def main():
 
     # Load the Word document
     doc = Document(doc_path)
-    #root = ET.fromstring(zipfile.ZipFile(doc_path).read('word/document.xml'))
+
     # Check if the document has a cover page
     if has_cover_page(doc):
         print("The document has a cover page.")
@@ -217,16 +246,6 @@ def main():
         print('The paragraph is not justified')
         data.append(0)
 
-    #if check_hyperlinks(doc):
-    #    print('The document has links.')
-    #    data.append(2)
-    #else:
-    #    print('No hyerlinks found in the document.')
-    #    data.append(0)
-
-    all_hyperlinks = hyperlinks(doc)
-    print(all_hyperlinks)
-
     if has_images(doc):
         print("The document contains images.")
     else:
@@ -246,6 +265,34 @@ def main():
     except Exception as e:
         print(f"An error occurred: {e}")
 
+
+    all_hyperlinks = hyperlinks(doc)
+    if all_hyperlinks: 
+        print(f"The document has links\n {all_hyperlinks}")
+        data.append(2)
+    else:
+        print('No hyperlinks found in the document')
+        data.append(0)
+
+    if is_a4_word_document(doc):
+        print("The Word document has A4 paper size.")
+        data.append(2)
+    else:
+        print("The Word document does not have A4 paper size.")
+        data.append(0)
+
+    if check_margins(doc):
+        print("The Word document has 2 cm margins on all sides.")
+        data.append(2)
+    else:
+        print("The Word document does not have 2 cm margins on all sides.")
+        data.append(0)
+  
+    if has_watermark(doc):
+        print("The Word document contains a watermark.")
+    else:
+        print("The Word document does not contain a watermark.") 
+    
 
     print(data)
 if __name__ == "__main__":
