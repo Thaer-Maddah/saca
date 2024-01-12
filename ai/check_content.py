@@ -192,16 +192,22 @@ def check_margins(doc):
         top_margin == bottom_margin == 720090 
     )
 
-
-
-
+# Define a function to check watermark
 def has_watermark(doc):
-
-    # Iterate through sections
-    for shape in doc.sections[0].footer.paragraphs[0].runs:
-        if shape.text.lower().startswith('watermark'):
-            return True
+    # Loop through the header parts
+    for header_part in doc.part.package.parts:
+        # Check if the part is a header
+        if header_part.partname.find("/header") > 0:
+            # Get the xml content of the header
+            xml = header_part.blob.decode()
+            # Check if the xml contains the watermark tag
+            #if "mso-position-horizontal" in xml:
+            if "PowerPlusWaterMarkObject" in xml:
+                # Return True if watermark is found
+                return True
+    # Return False if no watermark is found
     return False
+
 
 def main():
 
@@ -211,6 +217,7 @@ def main():
 
     # Load the Word document
     doc = Document(doc_path)
+    print(f"File: {doc_path}")
 
     # Check if the document has a cover page
     if has_cover_page(doc):
@@ -290,8 +297,10 @@ def main():
   
     if has_watermark(doc):
         print("The Word document contains a watermark.")
+        data.append(2)
     else:
         print("The Word document does not contain a watermark.") 
+        data.append(0)
     
 
     print(data)
