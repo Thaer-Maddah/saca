@@ -231,7 +231,7 @@ def reviseExcel(file_name, ws, wb, wbr, df):
  
 
 def main():
-    folder = 'Assign/C13'
+    folder = 'Assign/C14'
     ext = '.xlsx'
     trim_txt = '/mnt/c/code/Assign/'
     counter = 0 
