@@ -2,24 +2,20 @@
 # Writtin By Thaer Maddah
 import sys
 import time
-import zipfile
-import xml.etree.ElementTree as ET
+#import zipfile
+#import xml.etree.ElementTree as ET
 import pandas as pd
 import re
-sys.path.insert(1, '../')
+#sys.path.insert(1, '../')
 import write_grades as wr
 import browse_files as bf
 #import textract
 import math
 
-
 from docx import Document
 from docx.shared import RGBColor
 from docx.oxml.ns import qn
-#import zipfile
-#import xml.etree.ElementTree as ET
 import re
-#from docx.shared import Inches
 from PIL import Image
 from io import BytesIO
 
@@ -300,16 +296,56 @@ def page_has_color(doc):
         return False
 
 
+def get_text(doc):
+    full_text = []
+    try:
+        # Load the Word document
+        for paragraph in doc.paragraphs:
+            #txt_file.write(paragraph.text + '\n')
+            full_text.append(paragraph.text)
+        return '\n\n'.join(full_text)
+
+    except Exception as e:
+        print(f'Error: {e}')
+
+
+def textEval(text, data_set = ''):
+    # Read csv file to evals text
+    df = pd.read_csv('files/dataset.csv',
+                     header = 0,
+                     usecols = ['text', 'eval'])
+    mark = []
+
+    for row in df.itertuples():
+        txt = row.text
+        value = row.eval
+        match = re.search(txt.strip(), text, re.IGNORECASE)
+        if match is not None:
+            print('Find word', str(match))
+            mark.append(value)
+        else:
+            mark.append(0)
+            print(txt, 'Not found!')
+
+    print('Mark:', mark)
+    grade = sum(mark[0:len(mark)])
+    print('Final Mark is:', grade)
+
+    print('Final grade is:', grade * 0.5)
+    grade = grade * 0.05
+    data.append(math.ceil(grade))
+
+
 
 def reviseDocuments(doc):
 
-    data = []
-    # Specify the path to your Word document
-    doc_path = '../test/test.docx'
+    #data = []
+    ## Specify the path to your Word document
+    #doc_path = '../test/test.docx'
 
-    # Load the Word document
-    doc = Document(doc_path)
-    print(f"File: {doc_path}")
+    ## Load the Word document
+    #doc = Document(doc_path)
+    #print(f"File: {doc_path}")
 
     # Check if the document has a cover page
     if has_cover_page(doc):
@@ -319,12 +355,12 @@ def reviseDocuments(doc):
         print("No cover page found in the document.")
         data.append(0)
 
-    if has_string(doc):
-        print(f"The document has string {has_string(doc)}")
-        data.append(has_string(doc))
-    else:
-        print(f"The document has string {has_string(doc)}")
-        data.append(0)
+    #if has_string(doc):
+    #    print(f"The document has string {has_string(doc)}")
+    #    data.append(has_string(doc))
+    #else:
+    #    print(f"The document has string {has_string(doc)}")
+    #    data.append(0)
 
     # Check if the document has a table of contents
     if has_table_of_contents(doc):
@@ -379,8 +415,10 @@ def reviseDocuments(doc):
 
     if has_images(doc):
         print("The document contains images.")
+        data.append(3)
     else:
         print("No images found in the document")
+        data.append(0)
 
     target_dimensions_cm = (6, 6)  # Assuming default DPI is 96, adjust if needed
     try:
@@ -431,6 +469,8 @@ def reviseDocuments(doc):
     else:
         data.append(0)
 
+    text = get_text(doc)
+    textEval(text)
     print(data)
     degree = sum(data[1:len(data)])
     # put data between bracktes to retern data in a single list element [item1,item2,..]
@@ -441,10 +481,10 @@ def reviseDocuments(doc):
 
 def main():
     counter = 0 
-    folder = '../Assign/c18'
+    folder = 'Assign/C13'
     #folder = 'test/'
     ext = '.docx'
-    trim_txt = '../code/Assign/'
+    trim_txt = '/mnt/c/code/Assign/'
     files = []
     files, dirs = bf.browse(ext, folder)
     sep = '='
@@ -454,20 +494,21 @@ def main():
         path = bf.getFile(file, dir)
         print(path)
         #print('The file path:', path)
-        doc = zipfile.ZipFile(path).read('word/document.xml')
-        root = ET.fromstring(doc)
+        #doc = zipfile.ZipFile(path).read('word/document.xml')
+        #root = ET.fromstring(doc)
         #xmlfile = ET.parse(path)
         #root = xmlfile.getroot()
         
-        f = open(dir +'/' + 'doc.xml', 'wb')
-        f.write(doc)
+        #f = open(dir +'/' + 'doc.xml', 'wb')
+        #f.write(doc)
         # Microsoft's XML makes heavy use of XML namespaces; thus, we'll need to reference that in our code
-        ns = {'w': 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'}
-        body = root.find('w:body', ns)  # find the XML "body" tag
-        p_sections = body.findall('w:p', ns)  # under the body tag, find all the paragraph sections
+        #ns = {'w': 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'}
+        #body = root.find('w:body', ns)  # find the XML "body" tag
+        #p_sections = body.findall('w:p', ns)  # under the body tag, find all the paragraph sections
     
         # add student file
         data.append(path.strip(trim_txt))
+        doc = Document(path)
         reviseDocuments(doc)
         counter += 1
         print(counter, 'Assignments has been revised!')
