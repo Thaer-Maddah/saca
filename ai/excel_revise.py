@@ -29,23 +29,15 @@
 
 import sys
 import pandas as pd
-import numpy as np
 import browse_files as bf
 import openpyxl
-from openpyxl.formatting import Rule
-from openpyxl.formatting.rule import ColorScaleRule
-from openpyxl.utils import get_column_letter, column_index_from_string
 import time
 import re
-#import win32com.client as client
-#import write_grades as wr
+import write_grades as wr
 
 
 #excel_file='files/excel.xlsx'
 
-folder = 'Assign/test'
-ext = '.xlsx'
-trim_txt = '/mnt/c/code/Assign/'
 grade = []
 
 
@@ -58,16 +50,18 @@ def check_file_name(file_name):
     return False
 
 
-def sheetTitle(ws):
-    title1 = 'وظيفة مهارات الحاسوب'
-    title2 = 'وظيفه مهارات الحاسوب'
-    if ws.title == title1 or ws.title == title2:
-        print('Sheet name: 3')
-        grade.append(3)
-        print(ws.title)
-    else:
-        print('Sheet name is wrong: 0')
-        grade.append(0)
+def sheet_name(wb):
+    title = '_'
+
+    for ws in wb.worksheets:
+        print(ws)
+        match = re.search(title, ws.title, re.IGNORECASE)
+        if match:
+            print(f"Sheet name: {ws.title}")
+            return True
+        else:
+            print(f"Sheet name is wrong: {ws.title}")
+            return False
 
 # This method find specific formula by substring
 def eval_cell(ws, df, str_formula, str_value ):
@@ -89,6 +83,22 @@ def eval_cell(ws, df, str_formula, str_value ):
                         return True
 
     return False
+
+def has_decimal(wbr):
+    ws = wbr.active
+    print(ws)
+    # Get cell value and convert to float
+    cell = ws['Q5'] # Replace 'A1' with the desired cell address
+    print(cell.value)
+    value = float(cell.value)
+    
+    # Check if value contains a decimal
+    if int(value) == value:
+        print(f"Cell {cell.coordinate} contains no decimal")
+        return False
+    else:
+        print(f"Cell {cell.coordinate} contains a decimal")
+        return True
 
 # Charts
 def check_excel_contains_chart(wb):
@@ -149,9 +159,14 @@ def is_worksheet_empty(ws):
 
 
 
-def reviseExcel(file_name, ws, wb, df):
+def reviseExcel(file_name, ws, wb, wbr, df):
 
     if check_file_name(file_name):
+        grade.append(3)
+    else:
+        grade.append(0)
+
+    if sheet_name(wb):
         grade.append(3)
     else:
         grade.append(0)
@@ -184,12 +199,11 @@ def reviseExcel(file_name, ws, wb, df):
         else:
             grade.append(0)
 
-    if check_excel_contains_chart(wb):
-        grade.append(5)
 
-    chart_type = get_chart_type(wb)
-    if chart_type == "BarChart" or chart_type == "BarChart3D":
-        grade.append(5)
+    if has_decimal(wbr):
+        grade.append(2)
+    else:
+        grade.append(0)
 
 
     if has_formatting(ws):
@@ -197,15 +211,29 @@ def reviseExcel(file_name, ws, wb, df):
     else:
         grade.append(0)
 
+
+    if check_excel_contains_chart(wb):
+        chart_type = get_chart_type(wb)
+        if chart_type == "BarChart" or chart_type == "BarChart3D":
+            grade.append(10)
+        else:
+            grade.append(5)
+    else:
+        grade.append(0)
+
+
     degree = sum(grade[1:len(grade)])
     
     print(grade)
-    #wr.writeExcelGrades([grade]) 
+    wr.writeExcelGrades([grade]) 
     print('Final degree is:', degree)
     del grade[:]
  
 
 def main():
+    folder = 'Assign/C13'
+    ext = '.xlsx'
+    trim_txt = '/mnt/c/code/Assign/'
     counter = 0 
     files = []
     files, dirs = bf.browse(ext, folder)
@@ -217,27 +245,14 @@ def main():
         # openpyxl
         # data_only=True return the Cell value
         df = pd.read_excel(path, engine='openpyxl', header=None)
-        wb = openpyxl.load_workbook(path, data_only=False)
+        wb = openpyxl.load_workbook(path, data_only=False)  # get cell formulas
+        wbr = openpyxl.load_workbook(path, data_only=True)  # get cell value
+
         ws = wb.active
         print(f"Active worksheet: {ws}")
         grade.append(path.strip(trim_txt))
-        reviseExcel(file, ws, wb, df)
+        reviseExcel(file, ws, wb, wbr, df)
     
-        #grade.append(dir + file)
-        #grade.append(4)
-
-        # this is the sheet work section 
-        #print(f"Active sheet is: {wb.active}")
-        #for sheet in wb.worksheets:
-        #    #print(f"Processing sheet '{sheet.title}'")
-        #    wb.active = wb[sheet.title]
-        #    if is_worksheet_empty(wb[sheet.title]):
-        #        pass
-        #    else:
-        #        wb.active = ws
-        #        reviseExcel(ws, df)
-        #        print(ws)
-
         counter += 1
         print(counter, 'Excel file revised!')
     
