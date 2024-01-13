@@ -35,6 +35,7 @@ import openpyxl
 #from openpyxl import load_workbook
 from openpyxl.utils import get_column_letter, column_index_from_string
 import time
+import re
 #import win32com.client as client
 #import write_grades as wr
 
@@ -60,16 +61,23 @@ def sheetTitle(ws):
 
 # This method find specific formula by substring
 def eval_cell(ws, df, str_formula, str_value ):
-    #string = "=SUM("
+
     # Loop through each cell
     for row_index, row in df.iterrows():
         for col_index, cell_value in enumerate(row):
             cell = ws.cell(row=row_index + 1, column=col_index + 1)
             # Check if the cell has a formula
-            if ( str(cell.value).find(str_formula) != -1):# and cell.value == 6.157635467980295
-                if round(cell_value, 0) == str_value: # round the number for 2 decimals
-                    print(f"Cell {str_formula} {cell.coordinate} contains a formula: {cell_value}")
-                    return True
+            if ( str(cell.value).find(str_formula) != -1):
+                if type(str_value) is str:
+                    match = re.search(str_value.strip(), cell_value, re.IGNORECASE)
+                    if match is not None: # round the number for 2 decimals
+                        print(f"Cell {str_formula} {cell.coordinate} contains a formula: {cell_value}")
+                        return True
+                else:
+                    if round(cell_value, 0) == str_value: # round the number for 2 decimals
+                        print(f"Cell {str_formula} {cell.coordinate} contains a formula: {cell_value}")
+                        return True
+
     return False
 
 def is_worksheet_empty(ws):
@@ -84,19 +92,22 @@ def is_worksheet_empty(ws):
 
 def reviseExcel(ws, df):
     str_dict = {
+        "=CONCATENATE": 'يامن',
+        "=DAY": 13,
+        "=MONTH": 5,
+        "=YEAR": 2000,
         "=SUM": 196,
         "=AVERAGE": 49,
         "=MAX": 60,
         "=MIN": 37,
         "=LARGE": 53,
         "=SMALL": 46,
-        #"=IF(": "D",
+        "=IF(": "D",
         "=COUNT": 15,
         "=COUNTIF": 7,
         "=COUNTIF(": 4
         }
 
-    #sheetTitle(ws)
     for key, value in str_dict.items():
         if eval_cell(ws, df, key, value ):
             grade.append(2)
@@ -105,6 +116,7 @@ def reviseExcel(ws, df):
 
     #hasChart(xl, work_book)
     degree = sum(grade[1:len(grade)])
+    
     print(grade)
     #wr.writeExcelGrades([grade]) 
     print('Final degree is:', degree)
@@ -125,6 +137,7 @@ def main():
         df = pd.read_excel(path, engine='openpyxl', header=None)
         wb = openpyxl.load_workbook(path, data_only=False)
         ws = wb.active
+        print(f"Active worksheet: {ws}")
         grade.append(path.strip(trim_txt))
         reviseExcel(ws, df)
     
