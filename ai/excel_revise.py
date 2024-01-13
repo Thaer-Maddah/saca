@@ -32,7 +32,8 @@ import pandas as pd
 import numpy as np
 import browse_files as bf
 import openpyxl
-#from openpyxl import load_workbook
+from openpyxl.formatting import Rule
+from openpyxl.formatting.rule import ColorScaleRule
 from openpyxl.utils import get_column_letter, column_index_from_string
 import time
 import re
@@ -45,8 +46,17 @@ import re
 folder = 'Assign/test'
 ext = '.xlsx'
 trim_txt = '/mnt/c/code/Assign/'
-data = [[1400, 880, 630], [2700, 780, 1080], [2500, 900, 1375], [2700, 805, 1755]]
 grade = []
+
+
+def check_file_name(file_name):
+    if file_name == "وظيفة مهارات الحاسوب.xlsx" or file_name == "وظيفة مهارات حاسوب.xlsx" or \
+                file_name == "مهارات الحاسوب.xlsx" or file_name == "مهارات حاسوب.xlsx":
+        print(f"File name correct {file_name}")
+        return True
+
+    return False
+
 
 def sheetTitle(ws):
     title1 = 'وظيفة مهارات الحاسوب'
@@ -80,6 +90,55 @@ def eval_cell(ws, df, str_formula, str_value ):
 
     return False
 
+# Charts
+def check_excel_contains_chart(wb):
+    
+    has_chart = False
+    
+    for sheet_name in wb.sheetnames:
+        sheet = wb[sheet_name]
+        if sheet._charts:
+            has_chart = True
+            break
+    
+    if has_chart:
+        print("The Excel file contains a chart.")
+    else:
+        print("The Excel file does not contain a chart.")
+
+    return has_chart
+
+
+def get_chart_type(wb):
+    
+    chart_type = ""
+    for sheet_name in wb.sheetnames:
+        sheet = wb[sheet_name]
+        
+        if sheet._charts:
+            charts = sheet._charts  # for only first chart type sheet._charts[0]
+            
+            # loop through sheet to check if there is more than one chart
+            for chart in charts: 
+                # get chart name
+                chart_type = chart.__class__.__name__
+                print("The chart type is:", chart_type)
+            return chart_type
+ 
+
+def has_formatting(ws):
+    for row in ws.iter_rows():
+        for cell in row:
+            # Check if the cell has any conditional formatting
+            for cf in ws.conditional_formatting:
+                if cell.coordinate in cf:
+                    # Print the cell coordinate and the conditional formatting rule
+                    print(f"Cell {cell.coordinate} has conditional formatting: {cf.cfRule[0].dxfId}")
+                    return True
+    return False
+
+
+
 def is_worksheet_empty(ws):
     """Check if a given worksheet is empty."""
     for row in ws.iter_rows(values_only=True):
@@ -90,7 +149,14 @@ def is_worksheet_empty(ws):
 
 
 
-def reviseExcel(ws, df):
+def reviseExcel(file_name, ws, wb, df):
+
+    if check_file_name(file_name):
+        grade.append(3)
+    else:
+        grade.append(0)
+
+
     str_dict = {
         "=CONCATENATE": 'يامن',
         "=DAY": 13,
@@ -109,12 +175,28 @@ def reviseExcel(ws, df):
         }
 
     for key, value in str_dict.items():
+
         if eval_cell(ws, df, key, value ):
-            grade.append(2)
+            if value == "D":
+                grade.append(6)
+            else:
+                grade.append(2)
         else:
             grade.append(0)
 
-    #hasChart(xl, work_book)
+    if check_excel_contains_chart(wb):
+        grade.append(5)
+
+    chart_type = get_chart_type(wb)
+    if chart_type == "BarChart" or chart_type == "BarChart3D":
+        grade.append(5)
+
+
+    if has_formatting(ws):
+        grade.append(10)
+    else:
+        grade.append(0)
+
     degree = sum(grade[1:len(grade)])
     
     print(grade)
@@ -125,12 +207,12 @@ def reviseExcel(ws, df):
 
 def main():
     counter = 0 
-    item = []
     files = []
     files, dirs = bf.browse(ext, folder)
     start = time.time()
     for file, dir in zip(files, dirs):
         path = bf.getFile(file, dir)
+        print(file)
         print(path)
         # openpyxl
         # data_only=True return the Cell value
@@ -139,7 +221,7 @@ def main():
         ws = wb.active
         print(f"Active worksheet: {ws}")
         grade.append(path.strip(trim_txt))
-        reviseExcel(ws, df)
+        reviseExcel(file, ws, wb, df)
     
         #grade.append(dir + file)
         #grade.append(4)
