@@ -324,16 +324,17 @@ def textEval(text, data_set = ''):
             print('Find word', str(match))
             mark.append(value)
         else:
-            mark.append(0)
+            mark.append(0.1)
             print(txt, 'Not found!')
 
     print('Mark:', mark)
     grade = sum(mark[0:len(mark)])
     print('Final Mark is:', grade)
 
-    print('Final grade is:', grade * 0.5)
+    print('Final grade is:', grade * 0.05)
     grade = grade * 0.05
     data.append(math.ceil(grade))
+    #data.append(grade)
 
 
 
@@ -470,6 +471,7 @@ def reviseDocuments(doc):
         data.append(0)
 
     text = get_text(doc)
+    print(text)
     textEval(text)
     print(data)
     degree = sum(data[1:len(data)])
@@ -481,7 +483,7 @@ def reviseDocuments(doc):
 
 def main():
     counter = 0 
-    folder = 'Assign/C13'
+    folder = 'Assign/C14'
     #folder = 'test/'
     ext = '.docx'
     trim_txt = '/mnt/c/code/Assign/'
